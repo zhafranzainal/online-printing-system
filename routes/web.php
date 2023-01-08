@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,12 +20,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified'
-])->group(function () {
-    Route::get('/dashboard', function () {
+Route::middleware(['auth:sanctum', 'verified'])
+    ->get('/dashboard', function () {
         return view('dashboard');
-    })->name('dashboard');
-});
+    })
+    ->name('dashboard');
+
+Route::prefix('/')
+    ->middleware(['auth:sanctum', 'verified'])
+    ->group(function () {
+        Route::resource('roles', RoleController::class);
+        Route::resource('permissions', PermissionController::class);
+    });

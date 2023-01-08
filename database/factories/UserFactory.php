@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Team;
+use App\Models\Address;
+use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Laravel\Jetstream\Features;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 class UserFactory extends Factory
 {
@@ -20,50 +21,35 @@ class UserFactory extends Factory
     /**
      * Define the model's default state.
      *
-     * @return array<string, mixed>
+     * @return array
      */
-    public function definition(): array
+    public function definition()
     {
         return [
             'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'email' => $this->faker->unique->email,
             'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'username' => $this->faker->word(),
+            'password' => Hash::make('password'),
+            'mobile_no' => $this->faker->mobileNumber(true, false),
+            'is_rider' => $this->faker->boolean,
             'remember_token' => Str::random(10),
+            'address_id' => Address::inRandomOrder()->pluck('id')->first(),
+            'role_id' => Role::inRandomOrder()->pluck('id')->first(),
         ];
     }
 
     /**
      * Indicate that the model's email address should be unverified.
      *
-     * @return $this
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
      */
-    public function unverified(): static
+    public function unverified()
     {
         return $this->state(function (array $attributes) {
             return [
                 'email_verified_at' => null,
             ];
         });
-    }
-
-    /**
-     * Indicate that the user should have a personal team.
-     *
-     * @return $this
-     */
-    public function withPersonalTeam(): static
-    {
-        if (! Features::hasTeamFeatures()) {
-            return $this->state([]);
-        }
-
-        return $this->has(
-            Team::factory()
-                ->state(function (array $attributes, User $user) {
-                    return ['name' => $user->name.'\'s Team', 'user_id' => $user->id, 'personal_team' => true];
-                }),
-            'ownedTeams'
-        );
     }
 }
